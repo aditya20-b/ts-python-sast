@@ -1,0 +1,515 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "ts-sast",
+          "version": "0.1.0",
+          "fullName": "Tree-sitter Static Analysis Security Testing",
+          "informationUri": "https://github.com/yourusername/ts-sast",
+          "rules": [
+            {
+              "id": "PY.HASH.WEAK",
+              "name": "PY.HASH.WEAK",
+              "shortDescription": {
+                "text": "Weak cryptographic hash function"
+              },
+              "fullDescription": {
+                "text": "MD5 and SHA1 are cryptographically broken and should not be used for security-sensitive applications.\n"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "cryptography",
+                  "weak-algorithm"
+                ]
+              },
+              "helpUri": "https://shattered.io/"
+            },
+            {
+              "id": "PY.PICKLE.LOAD",
+              "name": "PY.PICKLE.LOAD",
+              "shortDescription": {
+                "text": "Unsafe pickle deserialization"
+              },
+              "fullDescription": {
+                "text": "pickle.load() and pickle.loads() can execute arbitrary code during deserialization. Never unpickle data from untrusted sources.\n"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "deserialization",
+                  "code-execution"
+                ]
+              },
+              "helpUri": "https://docs.python.org/3/library/pickle.html#module-pickle"
+            },
+            {
+              "id": "PY.SUBPROCESS.SHELL",
+              "name": "PY.SUBPROCESS.SHELL",
+              "shortDescription": {
+                "text": "Subprocess called with shell=True"
+              },
+              "fullDescription": {
+                "text": "Using subprocess with shell=True can lead to shell injection vulnerabilities if user input is included in the command string.\n"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "injection",
+                  "command-execution"
+                ]
+              },
+              "helpUri": "https://docs.python.org/3/library/subprocess.html#security-considerations"
+            },
+            {
+              "id": "PY.OS.SYSTEM",
+              "name": "PY.OS.SYSTEM",
+              "shortDescription": {
+                "text": "Use of os.system()"
+              },
+              "fullDescription": {
+                "text": "os.system() executes commands through the shell and is vulnerable to command injection if user input is included.\n"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "injection",
+                  "command-execution"
+                ]
+              },
+              "helpUri": "https://docs.python.org/3/library/os.html#os.system"
+            },
+            {
+              "id": "PY.REQUESTS.VERIFY_FALSE",
+              "name": "PY.REQUESTS.VERIFY_FALSE",
+              "shortDescription": {
+                "text": "Disabled SSL certificate verification"
+              },
+              "fullDescription": {
+                "text": "Disabling SSL certificate verification makes the application vulnerable to man-in-the-middle attacks.\n"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "ssl",
+                  "network-security"
+                ]
+              },
+              "helpUri": "https://requests.readthedocs.io/en/latest/user/advanced/#ssl-cert-verification"
+            },
+            {
+              "id": "PY.EVAL.USE",
+              "name": "PY.EVAL.USE",
+              "shortDescription": {
+                "text": "Dangerous use of eval() or exec()"
+              },
+              "fullDescription": {
+                "text": "The eval() and exec() functions execute arbitrary code and can lead to code injection vulnerabilities if user input is passed to them.\n"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "injection",
+                  "code-execution"
+                ]
+              },
+              "helpUri": "https://owasp.org/www-community/attacks/Code_Injection"
+            },
+            {
+              "id": "PY.YAML.UNSAFE_LOAD",
+              "name": "PY.YAML.UNSAFE_LOAD",
+              "shortDescription": {
+                "text": "Unsafe YAML loading"
+              },
+              "fullDescription": {
+                "text": "yaml.load() without a safe loader can execute arbitrary Python code during deserialization, leading to code execution vulnerabilities.\n"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "deserialization",
+                  "code-execution"
+                ]
+              },
+              "helpUri": "https://pyyaml.org/wiki/PyYAMLDocumentation"
+            }
+          ]
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "startTimeUtc": "2025-09-23T21:33:16.306042Z",
+          "endTimeUtc": "2025-09-23T21:33:16.306168Z",
+          "workingDirectory": {
+            "uri": "file:///Users/aditya/Documents/Github/ts-python"
+          },
+          "properties": {
+            "filesScanned": 1,
+            "totalScanTimeMs": 4.402875900268555
+          }
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "PY.SUBPROCESS.SHELL",
+          "ruleIndex": 0,
+          "message": {
+            "text": "Avoid shell=True; use a list of arguments or shlex.quote for user input"
+          },
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///Users/aditya/Documents/Github/ts-python/demo/vulnerable.py"
+                },
+                "region": {
+                  "startLine": 20,
+                  "startColumn": 5,
+                  "endLine": 20,
+                  "endColumn": 53,
+                  "charOffset": 400,
+                  "charLength": 48
+                },
+                "contextRegion": {
+                  "snippet": {
+                    "text": "# PY.SUBPROCESS.SHELL - Shell injection\ndef run_command(filename):\n    subprocess.run(f\"ls -la {filename}\", shell=True)  # SECURITY ISSUE: Command injection\n\n# PY.OS.SYSTEM - OS system usage"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "confidence": 1.0,
+            "node_type": "call",
+            "node_text": "subprocess.run(f\"ls -la {filename}\", shell=True)",
+            "rule_tags": [
+              "injection",
+              "command-execution"
+            ]
+          },
+          "fixes": [
+            {
+              "description": {
+                "text": "Consider using: subprocess.run([\"ls\", user_input])"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "PY.REQUESTS.VERIFY_FALSE",
+          "ruleIndex": 0,
+          "message": {
+            "text": "Remove verify=False or use proper certificate verification"
+          },
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///Users/aditya/Documents/Github/ts-python/demo/vulnerable.py"
+                },
+                "region": {
+                  "startLine": 42,
+                  "startColumn": 16,
+                  "endLine": 42,
+                  "endColumn": 47,
+                  "charOffset": 1194,
+                  "charLength": 31
+                },
+                "contextRegion": {
+                  "snippet": {
+                    "text": "# PY.REQUESTS.VERIFY_FALSE - Disabled SSL verification\ndef fetch_data(url):\n    response = requests.get(url, verify=False)  # SECURITY ISSUE: MITM vulnerability\n    return response.text\n"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "confidence": 1.0,
+            "node_type": "call",
+            "node_text": "requests.get(url, verify=False)",
+            "rule_tags": [
+              "ssl",
+              "network-security"
+            ]
+          },
+          "fixes": [
+            {
+              "description": {
+                "text": "Consider using: requests.get(url)"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "PY.OS.SYSTEM",
+          "ruleIndex": 0,
+          "message": {
+            "text": "Use subprocess with a list of arguments instead of os.system()"
+          },
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///Users/aditya/Documents/Github/ts-python/demo/vulnerable.py"
+                },
+                "region": {
+                  "startLine": 24,
+                  "startColumn": 5,
+                  "endLine": 24,
+                  "endColumn": 32,
+                  "charOffset": 551,
+                  "charLength": 27
+                },
+                "contextRegion": {
+                  "snippet": {
+                    "text": "# PY.OS.SYSTEM - OS system usage\ndef delete_file(filename):\n    os.system(f\"rm {filename}\")  # SECURITY ISSUE: Command injection\n\n# PY.YAML.UNSAFE_LOAD - Unsafe YAML loading"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "confidence": 1.0,
+            "node_type": "call",
+            "node_text": "os.system(f\"rm {filename}\")",
+            "rule_tags": [
+              "injection",
+              "command-execution"
+            ]
+          },
+          "fixes": [
+            {
+              "description": {
+                "text": "Consider using: subprocess.run([\"rm\", filename])"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "PY.HASH.WEAK",
+          "ruleIndex": 0,
+          "message": {
+            "text": "Use stronger hash functions like SHA256, SHA3, or BLAKE2"
+          },
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///Users/aditya/Documents/Github/ts-python/demo/vulnerable.py"
+                },
+                "region": {
+                  "startLine": 38,
+                  "startColumn": 12,
+                  "endLine": 38,
+                  "endColumn": 42,
+                  "charOffset": 1030,
+                  "charLength": 30
+                },
+                "contextRegion": {
+                  "snippet": {
+                    "text": "# PY.HASH.WEAK - Weak cryptographic hash\ndef hash_password(password):\n    return hashlib.md5(password.encode()).hexdigest()  # SECURITY ISSUE: Weak hash\n\n# PY.REQUESTS.VERIFY_FALSE - Disabled SSL verification"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "confidence": 1.0,
+            "node_type": "call",
+            "node_text": "hashlib.md5(password.encode())",
+            "rule_tags": [
+              "cryptography",
+              "weak-algorithm"
+            ]
+          },
+          "fixes": [
+            {
+              "description": {
+                "text": "Consider using: hashlib.sha256(data).hexdigest()"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "PY.PICKLE.LOAD",
+          "ruleIndex": 0,
+          "message": {
+            "text": "Avoid pickle for untrusted data; use JSON or other safe formats"
+          },
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///Users/aditya/Documents/Github/ts-python/demo/vulnerable.py"
+                },
+                "region": {
+                  "startLine": 33,
+                  "startColumn": 11,
+                  "endLine": 33,
+                  "endColumn": 29,
+                  "charOffset": 869,
+                  "charLength": 18
+                },
+                "contextRegion": {
+                  "snippet": {
+                    "text": "# PY.PICKLE.LOAD - Unsafe pickle deserialization\ndef load_data(data):\n    obj = pickle.loads(data)  # SECURITY ISSUE: Code execution via pickle\n    return obj\n"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "confidence": 1.0,
+            "node_type": "call",
+            "node_text": "pickle.loads(data)",
+            "rule_tags": [
+              "deserialization",
+              "code-execution"
+            ]
+          },
+          "fixes": [
+            {
+              "description": {
+                "text": "Consider using: json.loads(trusted_data)"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "PY.YAML.UNSAFE_LOAD",
+          "ruleIndex": 0,
+          "message": {
+            "text": "Use yaml.safe_load() or yaml.load() with SafeLoader"
+          },
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///Users/aditya/Documents/Github/ts-python/demo/vulnerable.py"
+                },
+                "region": {
+                  "startLine": 28,
+                  "startColumn": 14,
+                  "endLine": 28,
+                  "endColumn": 36,
+                  "charOffset": 704,
+                  "charLength": 22
+                },
+                "contextRegion": {
+                  "snippet": {
+                    "text": "# PY.YAML.UNSAFE_LOAD - Unsafe YAML loading\ndef load_config(config_data):\n    config = yaml.load(config_data)  # SECURITY ISSUE: Code execution via YAML\n    return config\n"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "confidence": 1.0,
+            "node_type": "call",
+            "node_text": "yaml.load(config_data)",
+            "rule_tags": [
+              "deserialization",
+              "code-execution"
+            ]
+          },
+          "fixes": [
+            {
+              "description": {
+                "text": "Consider using: yaml.safe_load(user_data)"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "PY.EVAL.USE",
+          "ruleIndex": 0,
+          "message": {
+            "text": "Avoid using eval() or exec() with untrusted input"
+          },
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "file:///Users/aditya/Documents/Github/ts-python/demo/vulnerable.py"
+                },
+                "region": {
+                  "startLine": 15,
+                  "startColumn": 14,
+                  "endLine": 15,
+                  "endColumn": 30,
+                  "charOffset": 259,
+                  "charLength": 16
+                },
+                "contextRegion": {
+                  "snippet": {
+                    "text": "# PY.EVAL.USE - Dangerous eval usage\ndef dangerous_eval(user_input):\n    result = eval(user_input)  # SECURITY ISSUE: Code injection\n    return result\n"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "confidence": 1.0,
+            "node_type": "call",
+            "node_text": "eval(user_input)",
+            "rule_tags": [
+              "injection",
+              "code-execution"
+            ]
+          },
+          "fixes": [
+            {
+              "description": {
+                "text": "Consider using: ast.literal_eval(safe_expression)"
+              }
+            }
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "location": {
+            "uri": "file:///Users/aditya/Documents/Github/ts-python/demo/vulnerable.py"
+          },
+          "properties": {
+            "scanTimeMs": 4.402875900268555,
+            "rulesApplied": 8,
+            "findingCount": 7
+          }
+        }
+      ]
+    }
+  ]
+}

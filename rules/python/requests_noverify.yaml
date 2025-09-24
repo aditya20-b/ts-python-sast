@@ -1,0 +1,30 @@
+id: PY.REQUESTS.VERIFY_FALSE
+title: Disabled SSL certificate verification
+severity: medium
+description: >
+  Disabling SSL certificate verification makes the application vulnerable
+  to man-in-the-middle attacks.
+message: Remove verify=False or use proper certificate verification
+patterns:
+  - kind: call
+    callee:
+      anyOf:
+        - requests.get
+        - requests.post
+        - requests.put
+        - requests.delete
+        - requests.patch
+        - requests.head
+        - requests.options
+        - requests.request
+      args:
+        - name: verify
+          equals: false
+examples:
+  bad: requests.get(url, verify=False)
+  good: requests.get(url)  # or verify=True, or verify='/path/to/cert'
+tags:
+  - ssl
+  - network-security
+references:
+  - "https://requests.readthedocs.io/en/latest/user/advanced/#ssl-cert-verification"

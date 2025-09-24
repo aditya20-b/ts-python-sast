@@ -1,0 +1,23 @@
+id: PY.PICKLE.LOAD
+title: Unsafe pickle deserialization
+severity: high
+description: >
+  pickle.load() and pickle.loads() can execute arbitrary code during
+  deserialization. Never unpickle data from untrusted sources.
+message: Avoid pickle for untrusted data; use JSON or other safe formats
+patterns:
+  - kind: call
+    callee:
+      anyOf:
+        - pickle.load
+        - pickle.loads
+        - cPickle.load
+        - cPickle.loads
+examples:
+  bad: pickle.loads(untrusted_data)
+  good: json.loads(trusted_data)
+tags:
+  - deserialization
+  - code-execution
+references:
+  - "https://docs.python.org/3/library/pickle.html#module-pickle"

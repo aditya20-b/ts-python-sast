@@ -1,0 +1,27 @@
+id: PY.YAML.UNSAFE_LOAD
+title: Unsafe YAML loading
+severity: high
+description: >
+  yaml.load() without a safe loader can execute arbitrary Python code
+  during deserialization, leading to code execution vulnerabilities.
+message: Use yaml.safe_load() or yaml.load() with SafeLoader
+patterns:
+  - kind: call
+    callee:
+      name: yaml.load
+      args:
+        - name: Loader
+          present: false
+  - kind: call
+    callee:
+      anyOf:
+        - yaml.load
+        - yaml.full_load
+examples:
+  bad: yaml.load(user_data)
+  good: yaml.safe_load(user_data)
+tags:
+  - deserialization
+  - code-execution
+references:
+  - "https://pyyaml.org/wiki/PyYAMLDocumentation"

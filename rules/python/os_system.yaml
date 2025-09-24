@@ -1,0 +1,21 @@
+id: PY.OS.SYSTEM
+title: Use of os.system()
+severity: high
+description: >
+  os.system() executes commands through the shell and is vulnerable to
+  command injection if user input is included.
+message: Use subprocess with a list of arguments instead of os.system()
+patterns:
+  - kind: call
+    callee:
+      anyOf:
+        - os.system
+        - os.popen
+examples:
+  bad: os.system(f"rm {filename}")
+  good: subprocess.run(["rm", filename])
+tags:
+  - injection
+  - command-execution
+references:
+  - "https://docs.python.org/3/library/os.html#os.system"

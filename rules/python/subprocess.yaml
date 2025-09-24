@@ -1,0 +1,27 @@
+id: PY.SUBPROCESS.SHELL
+title: Subprocess called with shell=True
+severity: high
+description: >
+  Using subprocess with shell=True can lead to shell injection vulnerabilities
+  if user input is included in the command string.
+message: Avoid shell=True; use a list of arguments or shlex.quote for user input
+patterns:
+  - kind: call
+    callee:
+      anyOf:
+        - subprocess.Popen
+        - subprocess.run
+        - subprocess.call
+        - subprocess.check_call
+        - subprocess.check_output
+      args:
+        - name: shell
+          equals: true
+examples:
+  bad: subprocess.run(f"ls {user_input}", shell=True)
+  good: subprocess.run(["ls", user_input])
+tags:
+  - injection
+  - command-execution
+references:
+  - "https://docs.python.org/3/library/subprocess.html#security-considerations"

@@ -1,0 +1,224 @@
+{
+  "scan_info": {
+    "tool": "ts-sast",
+    "version": "0.1.0",
+    "timestamp": "2025-09-23T21:33:02.845243Z",
+    "files_scanned": 1,
+    "total_findings": 7
+  },
+  "summary": {
+    "findings_by_severity": {
+      "low": 0,
+      "medium": 2,
+      "high": 5,
+      "critical": 0
+    },
+    "has_high_severity": true
+  },
+  "results": [
+    {
+      "file": "demo/vulnerable.py",
+      "finding_count": 7,
+      "scan_time_ms": 3.5409927368164062,
+      "rules_applied": 8,
+      "findings": [
+        {
+          "rule_id": "PY.SUBPROCESS.SHELL",
+          "title": "Subprocess called with shell=True",
+          "severity": "high",
+          "message": "Avoid shell=True; use a list of arguments or shlex.quote for user input",
+          "location": {
+            "file": "demo/vulnerable.py",
+            "line": 20,
+            "column": 5,
+            "end_line": 20,
+            "end_column": 53,
+            "byte_offset": {
+              "start": 400,
+              "end": 448
+            }
+          },
+          "confidence": 1.0,
+          "remediation": "Consider using: subprocess.run([\"ls\", user_input])",
+          "code_snippet": "# PY.SUBPROCESS.SHELL - Shell injection\ndef run_command(filename):\n    subprocess.run(f\"ls -la {filename}\", shell=True)  # SECURITY ISSUE: Command injection\n\n# PY.OS.SYSTEM - OS system usage",
+          "metadata": {
+            "node_type": "call",
+            "node_text": "subprocess.run(f\"ls -la {filename}\", shell=True)",
+            "rule_tags": [
+              "injection",
+              "command-execution"
+            ]
+          }
+        },
+        {
+          "rule_id": "PY.REQUESTS.VERIFY_FALSE",
+          "title": "Disabled SSL certificate verification",
+          "severity": "medium",
+          "message": "Remove verify=False or use proper certificate verification",
+          "location": {
+            "file": "demo/vulnerable.py",
+            "line": 42,
+            "column": 16,
+            "end_line": 42,
+            "end_column": 47,
+            "byte_offset": {
+              "start": 1194,
+              "end": 1225
+            }
+          },
+          "confidence": 1.0,
+          "remediation": "Consider using: requests.get(url)",
+          "code_snippet": "# PY.REQUESTS.VERIFY_FALSE - Disabled SSL verification\ndef fetch_data(url):\n    response = requests.get(url, verify=False)  # SECURITY ISSUE: MITM vulnerability\n    return response.text\n",
+          "metadata": {
+            "node_type": "call",
+            "node_text": "requests.get(url, verify=False)",
+            "rule_tags": [
+              "ssl",
+              "network-security"
+            ]
+          }
+        },
+        {
+          "rule_id": "PY.OS.SYSTEM",
+          "title": "Use of os.system()",
+          "severity": "high",
+          "message": "Use subprocess with a list of arguments instead of os.system()",
+          "location": {
+            "file": "demo/vulnerable.py",
+            "line": 24,
+            "column": 5,
+            "end_line": 24,
+            "end_column": 32,
+            "byte_offset": {
+              "start": 551,
+              "end": 578
+            }
+          },
+          "confidence": 1.0,
+          "remediation": "Consider using: subprocess.run([\"rm\", filename])",
+          "code_snippet": "# PY.OS.SYSTEM - OS system usage\ndef delete_file(filename):\n    os.system(f\"rm {filename}\")  # SECURITY ISSUE: Command injection\n\n# PY.YAML.UNSAFE_LOAD - Unsafe YAML loading",
+          "metadata": {
+            "node_type": "call",
+            "node_text": "os.system(f\"rm {filename}\")",
+            "rule_tags": [
+              "injection",
+              "command-execution"
+            ]
+          }
+        },
+        {
+          "rule_id": "PY.HASH.WEAK",
+          "title": "Weak cryptographic hash function",
+          "severity": "medium",
+          "message": "Use stronger hash functions like SHA256, SHA3, or BLAKE2",
+          "location": {
+            "file": "demo/vulnerable.py",
+            "line": 38,
+            "column": 12,
+            "end_line": 38,
+            "end_column": 42,
+            "byte_offset": {
+              "start": 1030,
+              "end": 1060
+            }
+          },
+          "confidence": 1.0,
+          "remediation": "Consider using: hashlib.sha256(data).hexdigest()",
+          "code_snippet": "# PY.HASH.WEAK - Weak cryptographic hash\ndef hash_password(password):\n    return hashlib.md5(password.encode()).hexdigest()  # SECURITY ISSUE: Weak hash\n\n# PY.REQUESTS.VERIFY_FALSE - Disabled SSL verification",
+          "metadata": {
+            "node_type": "call",
+            "node_text": "hashlib.md5(password.encode())",
+            "rule_tags": [
+              "cryptography",
+              "weak-algorithm"
+            ]
+          }
+        },
+        {
+          "rule_id": "PY.PICKLE.LOAD",
+          "title": "Unsafe pickle deserialization",
+          "severity": "high",
+          "message": "Avoid pickle for untrusted data; use JSON or other safe formats",
+          "location": {
+            "file": "demo/vulnerable.py",
+            "line": 33,
+            "column": 11,
+            "end_line": 33,
+            "end_column": 29,
+            "byte_offset": {
+              "start": 869,
+              "end": 887
+            }
+          },
+          "confidence": 1.0,
+          "remediation": "Consider using: json.loads(trusted_data)",
+          "code_snippet": "# PY.PICKLE.LOAD - Unsafe pickle deserialization\ndef load_data(data):\n    obj = pickle.loads(data)  # SECURITY ISSUE: Code execution via pickle\n    return obj\n",
+          "metadata": {
+            "node_type": "call",
+            "node_text": "pickle.loads(data)",
+            "rule_tags": [
+              "deserialization",
+              "code-execution"
+            ]
+          }
+        },
+        {
+          "rule_id": "PY.YAML.UNSAFE_LOAD",
+          "title": "Unsafe YAML loading",
+          "severity": "high",
+          "message": "Use yaml.safe_load() or yaml.load() with SafeLoader",
+          "location": {
+            "file": "demo/vulnerable.py",
+            "line": 28,
+            "column": 14,
+            "end_line": 28,
+            "end_column": 36,
+            "byte_offset": {
+              "start": 704,
+              "end": 726
+            }
+          },
+          "confidence": 1.0,
+          "remediation": "Consider using: yaml.safe_load(user_data)",
+          "code_snippet": "# PY.YAML.UNSAFE_LOAD - Unsafe YAML loading\ndef load_config(config_data):\n    config = yaml.load(config_data)  # SECURITY ISSUE: Code execution via YAML\n    return config\n",
+          "metadata": {
+            "node_type": "call",
+            "node_text": "yaml.load(config_data)",
+            "rule_tags": [
+              "deserialization",
+              "code-execution"
+            ]
+          }
+        },
+        {
+          "rule_id": "PY.EVAL.USE",
+          "title": "Dangerous use of eval() or exec()",
+          "severity": "high",
+          "message": "Avoid using eval() or exec() with untrusted input",
+          "location": {
+            "file": "demo/vulnerable.py",
+            "line": 15,
+            "column": 14,
+            "end_line": 15,
+            "end_column": 30,
+            "byte_offset": {
+              "start": 259,
+              "end": 275
+            }
+          },
+          "confidence": 1.0,
+          "remediation": "Consider using: ast.literal_eval(safe_expression)",
+          "code_snippet": "# PY.EVAL.USE - Dangerous eval usage\ndef dangerous_eval(user_input):\n    result = eval(user_input)  # SECURITY ISSUE: Code injection\n    return result\n",
+          "metadata": {
+            "node_type": "call",
+            "node_text": "eval(user_input)",
+            "rule_tags": [
+              "injection",
+              "code-execution"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

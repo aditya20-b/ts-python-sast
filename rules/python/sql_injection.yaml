@@ -1,0 +1,23 @@
+id: PY.SQL.INJECTION
+title: Potential SQL injection via string formatting
+severity: high
+description: >
+  Using string formatting or concatenation to build SQL queries can lead
+  to SQL injection vulnerabilities.
+message: Use parameterized queries instead of string formatting
+patterns:
+  - kind: call
+    callee:
+      anyOf:
+        - cursor.execute
+        - connection.execute
+        - db.execute
+examples:
+  bad: cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
+  good: cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+tags:
+  - injection
+  - sql
+  - database
+references:
+  - "https://owasp.org/www-community/attacks/SQL_Injection"

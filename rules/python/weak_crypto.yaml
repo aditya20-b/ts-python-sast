@@ -1,0 +1,22 @@
+id: PY.HASH.WEAK
+title: Weak cryptographic hash function
+severity: medium
+description: >
+  MD5 and SHA1 are cryptographically broken and should not be used
+  for security-sensitive applications.
+message: Use stronger hash functions like SHA256, SHA3, or BLAKE2
+patterns:
+  - kind: call
+    callee:
+      anyOf:
+        - hashlib.md5
+        - hashlib.sha1
+examples:
+  bad: hashlib.md5(data).hexdigest()
+  good: hashlib.sha256(data).hexdigest()
+tags:
+  - cryptography
+  - weak-algorithm
+references:
+  - "https://shattered.io/"
+  - "https://valerieaurora.org/hash.html"

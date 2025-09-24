@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<module srow="0" scol="0" erow="13" ecol="10">
+  <function_definition srow="0" scol="0" erow="5" ecol="21">
+    def
+    <identifier field="name" srow="0" scol="4" erow="0" ecol="13">fibonacci</identifier>
+    <parameters field="parameters" srow="0" scol="13" erow="0" ecol="16">
+      (
+      <identifier srow="0" scol="14" erow="0" ecol="15">n</identifier>
+      )
+    </parameters>
+    :
+    <block field="body" srow="1" scol="4" erow="5" ecol="21"><if_statement srow="1" scol="4" erow="5" ecol="21">
+        if
+        <comparison_operator field="condition" srow="1" scol="7" erow="1" ecol="13"><identifier srow="1" scol="7" erow="1" ecol="8">n</identifier>
+          &lt;=
+          <integer srow="1" scol="12" erow="1" ecol="13">1</integer>
+        </comparison_operator>
+        :
+        <block field="consequence" srow="2" scol="8" erow="2" ecol="16"><return_statement srow="2" scol="8" erow="2" ecol="16">
+            return
+            <identifier srow="2" scol="15" erow="2" ecol="16">n</identifier>
+          </return_statement></block>
+        <else_clause field="alternative" srow="3" scol="4" erow="5" ecol="21">
+          else
+          :
+          <block field="body" srow="4" scol="8" erow="5" ecol="21"><expression_statement srow="4" scol="8" erow="4" ecol="52"><assignment srow="4" scol="8" erow="4" ecol="52"><identifier field="left" srow="4" scol="8" erow="4" ecol="14">result</identifier>
+                =
+                <binary_operator field="right" srow="4" scol="17" erow="4" ecol="52"><call field="left" srow="4" scol="17" erow="4" ecol="33"><identifier field="function" srow="4" scol="17" erow="4" ecol="26">fibonacci</identifier><argument_list field="arguments" srow="4" scol="26" erow="4" ecol="33">
+                      (
+                      <binary_operator srow="4" scol="27" erow="4" ecol="32"><identifier field="left" srow="4" scol="27" erow="4" ecol="28">n</identifier>
+                        -
+                        <integer field="right" srow="4" scol="31" erow="4" ecol="32">1</integer>
+                      </binary_operator>
+                      )
+                    </argument_list></call>
+                  +
+                  <call field="right" srow="4" scol="36" erow="4" ecol="52"><identifier field="function" srow="4" scol="36" erow="4" ecol="45">fibonacci</identifier><argument_list field="arguments" srow="4" scol="45" erow="4" ecol="52">
+                      (
+                      <binary_operator srow="4" scol="46" erow="4" ecol="51"><identifier field="left" srow="4" scol="46" erow="4" ecol="47">n</identifier>
+                        -
+                        <integer field="right" srow="4" scol="50" erow="4" ecol="51">2</integer>
+                      </binary_operator>
+                      )
+                    </argument_list></call>
+                </binary_operator>
+              </assignment></expression_statement><return_statement srow="5" scol="8" erow="5" ecol="21">
+              return
+              <identifier srow="5" scol="15" erow="5" ecol="21">result</identifier>
+            </return_statement></block>
+        </else_clause>
+      </if_statement></block>
+  </function_definition>
+  <function_definition srow="7" scol="0" erow="10" ecol="42">
+    def
+    <identifier field="name" srow="7" scol="4" erow="7" ecol="8">main</identifier>
+    <parameters field="parameters" srow="7" scol="8" erow="7" ecol="10">
+      (
+      )
+    </parameters>
+    :
+    <block field="body" srow="8" scol="4" erow="10" ecol="42"><for_statement srow="8" scol="4" erow="10" ecol="42">
+        for
+        <identifier field="left" srow="8" scol="8" erow="8" ecol="9">i</identifier>
+        in
+        <call field="right" srow="8" scol="13" erow="8" ecol="22"><identifier field="function" srow="8" scol="13" erow="8" ecol="18">range</identifier><argument_list field="arguments" srow="8" scol="18" erow="8" ecol="22">
+            (
+            <integer srow="8" scol="19" erow="8" ecol="21">10</integer>
+            )
+          </argument_list></call>
+        :
+        <block field="body" srow="9" scol="8" erow="10" ecol="42"><expression_statement srow="9" scol="8" erow="9" ecol="28"><assignment srow="9" scol="8" erow="9" ecol="28"><identifier field="left" srow="9" scol="8" erow="9" ecol="13">value</identifier>
+              =
+              <call field="right" srow="9" scol="16" erow="9" ecol="28"><identifier field="function" srow="9" scol="16" erow="9" ecol="25">fibonacci</identifier><argument_list field="arguments" srow="9" scol="25" erow="9" ecol="28">
+                  (
+                  <identifier srow="9" scol="26" erow="9" ecol="27">i</identifier>
+                  )
+                </argument_list></call>
+            </assignment></expression_statement><expression_statement srow="10" scol="8" erow="10" ecol="42"><call srow="10" scol="8" erow="10" ecol="42"><identifier field="function" srow="10" scol="8" erow="10" ecol="13">print</identifier><argument_list field="arguments" srow="10" scol="13" erow="10" ecol="42">
+                (
+                <string srow="10" scol="14" erow="10" ecol="41"><string_start srow="10" scol="14" erow="10" ecol="16">f"</string_start><string_content srow="10" scol="16" erow="10" ecol="26">fibonacci(</string_content><interpolation srow="10" scol="26" erow="10" ecol="29">
+                    {
+                    <identifier field="expression" srow="10" scol="27" erow="10" ecol="28">i</identifier>
+                    }
+                  </interpolation><string_content srow="10" scol="29" erow="10" ecol="33">) = </string_content><interpolation srow="10" scol="33" erow="10" ecol="40">
+                    {
+                    <identifier field="expression" srow="10" scol="34" erow="10" ecol="39">value</identifier>
+                    }
+                  </interpolation><string_end srow="10" scol="40" erow="10" ecol="41">"</string_end></string>
+                )
+              </argument_list></call></expression_statement></block>
+      </for_statement></block>
+  </function_definition>
+  <if_statement srow="12" scol="0" erow="13" ecol="10">
+    if
+    <comparison_operator field="condition" srow="12" scol="3" erow="12" ecol="25"><identifier srow="12" scol="3" erow="12" ecol="11">__name__</identifier>
+      ==
+      <string srow="12" scol="15" erow="12" ecol="25"><string_start srow="12" scol="15" erow="12" ecol="16">"</string_start><string_content srow="12" scol="16" erow="12" ecol="24">__main__</string_content><string_end srow="12" scol="24" erow="12" ecol="25">"</string_end></string>
+    </comparison_operator>
+    :
+    <block field="consequence" srow="13" scol="4" erow="13" ecol="10"><expression_statement srow="13" scol="4" erow="13" ecol="10"><call srow="13" scol="4" erow="13" ecol="10"><identifier field="function" srow="13" scol="4" erow="13" ecol="8">main</identifier><argument_list field="arguments" srow="13" scol="8" erow="13" ecol="10">
+            (
+            )
+          </argument_list></call></expression_statement></block>
+  </if_statement>
+</module>

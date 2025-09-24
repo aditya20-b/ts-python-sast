@@ -1,0 +1,21 @@
+id: PY.EVAL.USE
+title: Dangerous use of eval() or exec()
+severity: high
+description: >
+  The eval() and exec() functions execute arbitrary code and can lead to
+  code injection vulnerabilities if user input is passed to them.
+message: Avoid using eval() or exec() with untrusted input
+patterns:
+  - kind: call
+    callee:
+      anyOf:
+        - eval
+        - exec
+examples:
+  bad: eval(user_input)
+  good: ast.literal_eval(safe_expression)
+tags:
+  - injection
+  - code-execution
+references:
+  - "https://owasp.org/www-community/attacks/Code_Injection"

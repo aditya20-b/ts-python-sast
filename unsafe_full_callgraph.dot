@@ -1,0 +1,109 @@
+digraph CallGraph {
+    rankdir=TB;
+    node [shape=box, style=rounded];
+    edge [arrowhead=open];
+
+    rankdir=TB;
+    // Function nodes
+    "process_user_formula" [shape=box, color=blue, label="process_user_formula(formula)"];
+    "execute_user_code" [shape=box, color=gray, label="execute_user_code(code)"];
+    "list_directory" [shape=box, color=blue, label="list_directory(dirname)"];
+    "backup_file" [shape=box, color=gray, label="backup_file(filename)"];
+    "remove_temp_files" [shape=box, color=gray, label="remove_temp_files(pattern)"];
+    "compress_logs" [shape=box, color=gray, label="compress_logs(logdir)"];
+    "load_user_config" [shape=box, color=blue, label="load_user_config(config_data)"];
+    "parse_yaml_file" [shape=box, color=gray, label="parse_yaml_file(filename)"];
+    "deserialize_data" [shape=box, color=gray, label="deserialize_data(data)"];
+    "load_cache_file" [shape=box, color=gray, label="load_cache_file(filename)"];
+    "hash_user_password" [shape=box, color=blue, label="hash_user_password(password)"];
+    "create_session_token" [shape=box, color=gray, label="create_session_token(user_id)"];
+    "fetch_api_data" [shape=box, color=blue, label="fetch_api_data(url)"];
+    "post_user_data" [shape=box, color=gray, label="post_user_data(url, data)"];
+    "get_user_by_id" [shape=box, color=gray, label="get_user_by_id(user_id)"];
+    "search_users" [shape=box, color=gray, label="search_users(search_term)"];
+    "process_upload" [shape=box, color=gray, label="process_upload(file_data)"];
+    "main" [shape=box, color=blue, style="bold,filled", fillcolor=lightgreen, label="main()"];
+
+    // External functions
+    "subprocess.subprocess.run" [shape=ellipse, style=dashed, color=gray];
+    "subprocess.subprocess.call" [shape=ellipse, style=dashed, color=gray];
+    "os.os.system" [shape=ellipse, style=dashed, color=gray];
+    "os.os.popen" [shape=ellipse, style=dashed, color=gray];
+    "yaml.yaml.load" [shape=ellipse, style=dashed, color=gray];
+    "yaml.yaml.full_load" [shape=ellipse, style=dashed, color=gray];
+    "pickle.pickle.loads" [shape=ellipse, style=dashed, color=gray];
+    "pickle.pickle.load" [shape=ellipse, style=dashed, color=gray];
+    "hexdigest" [shape=ellipse, style=dashed, color=gray];
+    "hashlib.hashlib.md5" [shape=ellipse, style=dashed, color=gray];
+    "password.encode" [shape=ellipse, style=dashed, color=gray];
+    "hashlib.hashlib.sha1" [shape=ellipse, style=dashed, color=gray];
+    "encode" [shape=ellipse, style=dashed, color=gray];
+    "requests.requests.get" [shape=ellipse, style=dashed, color=gray];
+    "response.json" [shape=ellipse, style=dashed, color=gray];
+    "requests.requests.post" [shape=ellipse, style=dashed, color=gray];
+    "hash" [shape=ellipse, style=dashed, color=gray];
+
+    // Call relationships
+    "process_user_formula" -> "<builtin>.eval" ;
+    "execute_user_code" -> "<builtin>.exec" ;
+    "list_directory" -> "subprocess.subprocess.run" ;
+    "backup_file" -> "subprocess.subprocess.call" ;
+    "remove_temp_files" -> "os.os.system" ;
+    "compress_logs" -> "os.os.popen" ;
+    "load_user_config" -> "yaml.yaml.load" ;
+    "parse_yaml_file" -> "<builtin>.open" ;
+    "parse_yaml_file" -> "yaml.yaml.full_load" ;
+    "deserialize_data" -> "pickle.pickle.loads" ;
+    "load_cache_file" -> "<builtin>.open" ;
+    "load_cache_file" -> "pickle.pickle.load" ;
+    "hash_user_password" -> "hexdigest" [color=orange];
+    "hash_user_password" -> "hashlib.hashlib.md5" ;
+    "hash_user_password" -> "password.encode" ;
+    "create_session_token" -> "hexdigest" [color=orange];
+    "create_session_token" -> "hashlib.hashlib.sha1" ;
+    "create_session_token" -> "encode" [color=orange];
+    "create_session_token" -> "<builtin>.str" ;
+    "fetch_api_data" -> "requests.requests.get" ;
+    "fetch_api_data" -> "response.json" ;
+    "post_user_data" -> "requests.requests.post" ;
+    "process_upload" -> "<builtin>.str" ;
+    "process_upload" -> "hash" [color=orange];
+    "process_upload" -> "pickle.pickle.loads" ;
+    "process_upload" -> "subprocess.subprocess.run" ;
+    "process_upload" -> "hexdigest" [color=orange];
+    "process_upload" -> "hashlib.hashlib.md5" ;
+    "main" -> "<builtin>.input" ;
+    "main" -> "process_user_formula" ;
+    "main" -> "<builtin>.input" ;
+    "main" -> "list_directory" ;
+    "main" -> "<builtin>.input" ;
+    "main" -> "load_user_config" ;
+    "main" -> "<builtin>.input" ;
+    "main" -> "hash_user_password" ;
+    "main" -> "<builtin>.input" ;
+    "main" -> "fetch_api_data" ;
+
+    subgraph cluster_0 {
+        label="unsafe";
+        style=rounded;
+        color=lightgray;
+        "parse_yaml_file";
+        "remove_temp_files";
+        "hash_user_password";
+        "search_users";
+        "process_upload";
+        "execute_user_code";
+        "create_session_token";
+        "load_cache_file";
+        "deserialize_data";
+        "fetch_api_data";
+        "backup_file";
+        "get_user_by_id";
+        "process_user_formula";
+        "compress_logs";
+        "load_user_config";
+        "post_user_data";
+        "list_directory";
+        "main";
+    }
+}

@@ -223,6 +223,38 @@ ts-sast demo [OPTIONS]
 **Options:**
 - `--output, -o`: Output directory (default: demo)
 
+### `graph`
+Generate call graph for Python file.
+
+```bash
+ts-sast graph [FILE] [OPTIONS]
+```
+
+**Options:**
+- `--format, -f`: Output format (dot, json, graphml, cytoscape)
+- `--output, -o`: Output file (default: auto-generated)
+- `--layout, -l`: Layout hint (hierarchical, force_directed, circular, tree)
+- `--entry`: Entry point functions (can be repeated)
+- `--reachable-only`: Only include reachable functions
+- `--include-external`: Include external function calls
+- `--cluster`: Group functions by file/module
+- `--quiet, -q`: Suppress console output
+
+### `analyze`
+Perform advanced call graph analysis.
+
+```bash
+ts-sast analyze [FILE] [OPTIONS]
+```
+
+**Options:**
+- `--entry`: Entry point functions
+- `--cycles`: Find cycles in call graph
+- `--dead-code`: Find potentially dead code
+- `--critical N`: Show top N critical functions
+- `--impact FUNC`: Analyze impact of removing specific function
+- `--format`: Output format (table, json)
+
 ## Exit Codes
 
 - `0`: No security issues found
@@ -278,14 +310,33 @@ references:
   - "https://example.com/security-guide"
 ```
 
+## Phase 2: Call Graph Analysis ✅
+
+**Completed Features:**
+- **Symbol Table Builder**: Discovers all functions, methods, and their metadata
+- **Call Graph Construction**: Maps function call relationships with confidence scoring
+- **Reachability Analysis**: Identifies reachable functions from entry points
+- **Multiple Export Formats**: DOT (Graphviz), JSON, GraphML, Cytoscape.js
+- **Advanced Analysis**: Dead code detection, cycle detection, centrality analysis
+- **CLI Integration**: New `graph` and `analyze` commands
+- **Web Viewer**: Interactive visualization with Cytoscape.js
+
+**Usage Examples:**
+
+```bash
+# Generate DOT graph for Graphviz visualization
+ts-sast graph mycode.py --format dot --output callgraph.dot
+
+# Interactive analysis with statistics
+ts-sast analyze mycode.py --cycles --dead-code --critical 5
+
+# JSON export with external calls
+ts-sast graph mycode.py --format json --include-external
+```
+
 ## Roadmap
 
-### Phase 2: Call Graph Analysis
-- Function call graph generation
-- Reachability analysis from entry points
-- DOT and JSON export formats
-
-### Phase 3: Taint Analysis
+### Phase 3: Taint Analysis (Next)
 - Source-to-sink data flow tracking
 - Intra-procedural taint propagation
 - Limited inter-procedural analysis

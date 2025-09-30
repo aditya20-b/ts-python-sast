@@ -1,0 +1,164 @@
+{
+  "metadata": {
+    "tool": "ts-sast",
+    "version": "0.1.0",
+    "timestamp": "2025-09-24T04:46:21.291379Z",
+    "file_path": "demo/vulnerable.py",
+    "export_options": {
+      "format": "json",
+      "include_external": false,
+      "include_unresolved": false,
+      "only_reachable": false,
+      "layout_hint": "hierarchical",
+      "node_attributes": [],
+      "edge_attributes": [],
+      "clustering": false
+    }
+  },
+  "statistics": {
+    "total_nodes": 8,
+    "total_edges": 7,
+    "entry_points": 1,
+    "reachable_functions": 8
+  },
+  "nodes": [
+    {
+      "id": "dangerous_eval",
+      "name": "dangerous_eval",
+      "type": "function",
+      "file": "demo/vulnerable.py",
+      "line": 14,
+      "complexity": 1,
+      "is_reachable": true,
+      "is_entry_point": false
+    },
+    {
+      "id": "run_command",
+      "name": "run_command",
+      "type": "function",
+      "file": "demo/vulnerable.py",
+      "line": 19,
+      "complexity": 1,
+      "is_reachable": true,
+      "is_entry_point": false
+    },
+    {
+      "id": "delete_file",
+      "name": "delete_file",
+      "type": "function",
+      "file": "demo/vulnerable.py",
+      "line": 23,
+      "complexity": 1,
+      "is_reachable": true,
+      "is_entry_point": false
+    },
+    {
+      "id": "load_config",
+      "name": "load_config",
+      "type": "function",
+      "file": "demo/vulnerable.py",
+      "line": 27,
+      "complexity": 1,
+      "is_reachable": true,
+      "is_entry_point": false
+    },
+    {
+      "id": "load_data",
+      "name": "load_data",
+      "type": "function",
+      "file": "demo/vulnerable.py",
+      "line": 32,
+      "complexity": 1,
+      "is_reachable": true,
+      "is_entry_point": false
+    },
+    {
+      "id": "hash_password",
+      "name": "hash_password",
+      "type": "function",
+      "file": "demo/vulnerable.py",
+      "line": 37,
+      "complexity": 1,
+      "is_reachable": true,
+      "is_entry_point": false
+    },
+    {
+      "id": "fetch_data",
+      "name": "fetch_data",
+      "type": "function",
+      "file": "demo/vulnerable.py",
+      "line": 41,
+      "complexity": 1,
+      "is_reachable": true,
+      "is_entry_point": false
+    },
+    {
+      "id": "main",
+      "name": "main",
+      "type": "function",
+      "file": "demo/vulnerable.py",
+      "line": 49,
+      "complexity": 1,
+      "is_reachable": true,
+      "is_entry_point": true
+    }
+  ],
+  "edges": [
+    {
+      "source": "main",
+      "target": "dangerous_eval",
+      "call_type": "direct",
+      "line": 52,
+      "confidence": 1.0,
+      "is_conditional": false
+    },
+    {
+      "source": "main",
+      "target": "run_command",
+      "call_type": "direct",
+      "line": 54,
+      "confidence": 1.0,
+      "is_conditional": false
+    },
+    {
+      "source": "main",
+      "target": "delete_file",
+      "call_type": "direct",
+      "line": 55,
+      "confidence": 1.0,
+      "is_conditional": false
+    },
+    {
+      "source": "main",
+      "target": "load_config",
+      "call_type": "direct",
+      "line": 58,
+      "confidence": 1.0,
+      "is_conditional": false
+    },
+    {
+      "source": "main",
+      "target": "load_data",
+      "call_type": "direct",
+      "line": 61,
+      "confidence": 1.0,
+      "is_conditional": false
+    },
+    {
+      "source": "main",
+      "target": "hash_password",
+      "call_type": "direct",
+      "line": 63,
+      "confidence": 1.0,
+      "is_conditional": false
+    },
+    {
+      "source": "main",
+      "target": "fetch_data",
+      "call_type": "direct",
+      "line": 65,
+      "confidence": 1.0,
+      "is_conditional": false
+    }
+  ]
+}

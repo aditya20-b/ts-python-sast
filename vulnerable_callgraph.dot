@@ -1,0 +1,25 @@
+digraph CallGraph {
+    rankdir=TB;
+    node [shape=box, style=rounded];
+    edge [arrowhead=open];
+
+    rankdir=TB;
+    // Function nodes
+    "dangerous_eval" [shape=box, color=blue, label="dangerous_eval"];
+    "run_command" [shape=box, color=blue, label="run_command"];
+    "delete_file" [shape=box, color=blue, label="delete_file"];
+    "load_config" [shape=box, color=blue, label="load_config"];
+    "load_data" [shape=box, color=blue, label="load_data"];
+    "hash_password" [shape=box, color=blue, label="hash_password"];
+    "fetch_data" [shape=box, color=blue, label="fetch_data"];
+    "main" [shape=box, color=blue, style="bold,filled", fillcolor=lightgreen, label="main"];
+
+    // Call relationships
+    "main" -> "dangerous_eval" ;
+    "main" -> "run_command" ;
+    "main" -> "delete_file" ;
+    "main" -> "load_config" ;
+    "main" -> "load_data" ;
+    "main" -> "hash_password" ;
+    "main" -> "fetch_data" ;
+}

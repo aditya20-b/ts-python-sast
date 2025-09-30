@@ -13,6 +13,11 @@ from .rules.models import Severity
 from .report.console import ConsoleReporter
 from .report.json_reporter import JSONReporter
 from .report.sarif import SARIFReporter
+from .graph.builder import CallGraphBuilder
+from .graph.analyzer import ReachabilityAnalyzer
+from .graph.exporter import GraphExporter
+from .graph.models import GraphExportOptions, GraphExportFormat, GraphLayoutHint
+from .parsing.parser import PythonParser
 
 # Initialize typer app
 app = typer.Typer(
@@ -557,6 +562,252 @@ if __name__ == "__main__":
     console.print(f"   📁 vulnerable.py - Contains security issues")
     console.print(f"   📁 secure.py - Shows secure alternatives")
     console.print(f"\nTry: ts-sast scan {demo_dir}/vulnerable.py")
+
+
+@app.command()
+def graph(
+    file_path: str = typer.Argument(..., help="Python file to analyze"),
+    format: str = typer.Option(
+        "dot", "--format", "-f",
+        help="Output format: dot, json, graphml, cytoscape"
+    ),
+    output: Optional[str] = typer.Option(
+        None, "--output", "-o",
+        help="Output file (default: auto-generated)"
+    ),
+    layout: str = typer.Option(
+        "hierarchical", "--layout", "-l",
+        help="Layout hint: hierarchical, force_directed, circular, tree"
+    ),
+    entry_points: Optional[List[str]] = typer.Option(
+        None, "--entry", help="Entry point functions (can be repeated)"
+    ),
+    reachable_only: bool = typer.Option(
+        False, "--reachable-only",
+        help="Only include reachable functions"
+    ),
+    include_external: bool = typer.Option(
+        False, "--include-external",
+        help="Include external function calls"
+    ),
+    clustering: bool = typer.Option(
+        False, "--cluster",
+        help="Group functions by file/module"
+    ),
+    quiet: bool = typer.Option(
+        False, "--quiet", "-q",
+        help="Suppress console output"
+    )
+):
+    """Generate call graph for Python file"""
+    try:
+        # Validate file
+        target_path = Path(file_path)
+        if not target_path.exists():
+            typer.echo(f"File not found: {file_path}")
+            raise typer.Exit(1)
+
+        if target_path.suffix != '.py':
+            typer.echo(f"File must be a Python file (.py): {file_path}")
+            raise typer.Exit(1)
+
+        if not quiet:
+            console.print(f"🔍 Analyzing call graph for {file_path}...")
+
+        # Parse file and build call graph
+        parser = PythonParser()
+        ast = parser.parse_file(file_path)
+        if not ast:
+            typer.echo(f"Failed to parse file: {file_path}")
+            raise typer.Exit(1)
+
+        builder = CallGraphBuilder(file_path)
+        call_graph = builder.build(ast)
+
+        # Perform reachability analysis
+        analyzer = ReachabilityAnalyzer(call_graph)
+        reachability = analyzer.analyze(entry_points or None)
+
+        # Generate output filename if not specified
+        if not output:
+            stem = target_path.stem
+            format_ext = {"dot": "dot", "json": "json", "graphml": "xml", "cytoscape": "json"}
+            ext = format_ext.get(format, format)
+            output = f"{stem}_callgraph.{ext}"
+
+        # Set up export options
+        try:
+            export_format = GraphExportFormat(format.lower())
+            layout_hint = GraphLayoutHint(layout.lower())
+        except ValueError as e:
+            typer.echo(f"Invalid format or layout: {e}")
+            raise typer.Exit(1)
+
+        export_options = GraphExportOptions(
+            format=export_format,
+            include_external=include_external,
+            only_reachable=reachable_only,
+            layout_hint=layout_hint,
+            clustering=clustering,
+            node_attributes=['parameters', 'decorators'] if include_external else [],
+            edge_attributes=['call_expression'] if include_external else []
+        )
+
+        # Export graph
+        exporter = GraphExporter(call_graph)
+        exporter.export(output, export_options)
+
+        # Show statistics
+        if not quiet:
+            stats = analyzer.generate_statistics()
+            console.print("\n📊 Call Graph Statistics:")
+            console.print(f"   Functions: {stats.total_functions}")
+            console.print(f"   Call edges: {stats.total_calls}")
+            console.print(f"   Entry points: {stats.entry_points}")
+            console.print(f"   Reachable: {stats.reachable_functions}")
+            console.print(f"   External calls: {stats.external_calls}")
+
+            console.print(f"\n📁 Graph exported to {output}")
+
+    except Exception as e:
+        if not quiet:
+            console.print(f"❌ Error: {e}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def analyze(
+    file_path: str = typer.Argument(..., help="Python file to analyze"),
+    entry_points: Optional[List[str]] = typer.Option(
+        None, "--entry", help="Entry point functions"
+    ),
+    find_cycles: bool = typer.Option(
+        False, "--cycles",
+        help="Find cycles in call graph"
+    ),
+    find_dead_code: bool = typer.Option(
+        False, "--dead-code",
+        help="Find potentially dead code"
+    ),
+    critical_functions: int = typer.Option(
+        0, "--critical", help="Show top N critical functions"
+    ),
+    impact_analysis: Optional[str] = typer.Option(
+        None, "--impact", help="Analyze impact of removing specific function"
+    ),
+    output_format: str = typer.Option(
+        "table", "--format", help="Output format: table, json"
+    )
+):
+    """Perform advanced call graph analysis"""
+    try:
+        # Parse file and build call graph
+        target_path = Path(file_path)
+        if not target_path.exists():
+            typer.echo(f"File not found: {file_path}")
+            raise typer.Exit(1)
+
+        parser = PythonParser()
+        ast = parser.parse_file(file_path)
+        if not ast:
+            typer.echo(f"Failed to parse file: {file_path}")
+            raise typer.Exit(1)
+
+        builder = CallGraphBuilder(file_path)
+        call_graph = builder.build(ast)
+        analyzer = ReachabilityAnalyzer(call_graph)
+
+        # Perform requested analyses
+        results = {}
+
+        # Basic statistics
+        stats = analyzer.generate_statistics()
+        results['statistics'] = stats
+
+        # Reachability analysis
+        reachability = analyzer.analyze(entry_points or None)
+        results['reachability'] = reachability
+
+        # Find cycles
+        if find_cycles:
+            cycles = analyzer.find_cycles()
+            results['cycles'] = cycles
+
+        # Find dead code
+        if find_dead_code:
+            dead_code = analyzer.find_dead_code()
+            results['dead_code'] = dead_code
+
+        # Critical functions analysis
+        if critical_functions > 0:
+            critical = analyzer.find_critical_functions(critical_functions)
+            results['critical_functions'] = critical
+
+        # Impact analysis
+        if impact_analysis:
+            if impact_analysis in call_graph.symbols:
+                impact = analyzer.estimate_impact(impact_analysis)
+                results['impact_analysis'] = {impact_analysis: impact}
+            else:
+                console.print(f"⚠️ Function '{impact_analysis}' not found")
+
+        # Output results
+        if output_format == "json":
+            import json
+            # Convert sets to lists for JSON serialization
+            json_results = json.loads(json.dumps(results, default=str))
+            print(json.dumps(json_results, indent=2))
+        else:
+            # Table format
+            from rich.table import Table
+            from rich.panel import Panel
+
+            # Show statistics
+            stats_table = Table(title="📊 Call Graph Statistics")
+            stats_table.add_column("Metric", style="bold")
+            stats_table.add_column("Value", justify="right")
+
+            stats_table.add_row("Total Functions", str(stats.total_functions))
+            stats_table.add_row("Total Calls", str(stats.total_calls))
+            stats_table.add_row("Entry Points", str(stats.entry_points))
+            stats_table.add_row("Reachable Functions", str(stats.reachable_functions))
+            stats_table.add_row("Unreachable Functions", str(stats.unreachable_functions))
+            stats_table.add_row("External Calls", str(stats.external_calls))
+            stats_table.add_row("Max Call Depth", str(stats.max_call_depth))
+
+            console.print(stats_table)
+
+            # Show cycles if requested
+            if find_cycles and results.get('cycles'):
+                console.print("\n🔄 Detected Cycles:")
+                for i, cycle in enumerate(results['cycles'][:5]):  # Limit display
+                    cycle_str = " → ".join(cycle)
+                    console.print(f"   {i+1}. {cycle_str}")
+
+            # Show dead code if requested
+            if find_dead_code and results.get('dead_code'):
+                console.print(f"\n💀 Potentially Dead Code ({len(results['dead_code'])} functions):")
+                for func in results['dead_code'][:10]:  # Limit display
+                    console.print(f"   • {func}")
+
+            # Show critical functions
+            if critical_functions > 0 and results.get('critical_functions'):
+                console.print(f"\n⚡ Top {critical_functions} Critical Functions:")
+                for i, (func, metrics) in enumerate(results['critical_functions']):
+                    console.print(f"   {i+1}. {func} (degree: {metrics['total_degree']}, betweenness: {metrics['betweenness']:.2f})")
+
+            # Show impact analysis
+            if impact_analysis and results.get('impact_analysis'):
+                impact = results['impact_analysis'][impact_analysis]
+                console.print(f"\n💥 Impact Analysis for '{impact_analysis}':")
+                console.print(f"   Direct callers: {len(impact['direct_callers'])}")
+                console.print(f"   Dependencies: {len(impact['dependencies'])}")
+                console.print(f"   Impact score: {impact['impact_score']}")
+                console.print(f"   Is critical: {'Yes' if impact['is_critical'] else 'No'}")
+
+    except Exception as e:
+        console.print(f"❌ Error: {e}")
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":

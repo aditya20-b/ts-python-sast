@@ -18,6 +18,8 @@ from .graph.analyzer import ReachabilityAnalyzer
 from .graph.exporter import GraphExporter
 from .graph.models import GraphExportOptions, GraphExportFormat, GraphLayoutHint
 from .parsing.parser import PythonParser
+from .taint.engine import TaintAnalyzer
+from .taint.reporter import TaintReporter
 
 # Initialize typer app
 app = typer.Typer(
@@ -807,6 +809,82 @@ def analyze(
 
     except Exception as e:
         console.print(f"❌ Error: {e}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def taint(
+    file_path: str = typer.Argument(..., help="Python file to analyze"),
+    output_format: str = typer.Option(
+        "console", "--format", "-f",
+        help="Output format: console, json"
+    ),
+    output: Optional[str] = typer.Option(
+        None, "--output", "-o",
+        help="Output file for JSON export"
+    ),
+    show_sanitized: bool = typer.Option(
+        True, "--show-sanitized/--no-sanitized",
+        help="Show sanitized paths"
+    ),
+    quiet: bool = typer.Option(
+        False, "--quiet", "-q",
+        help="Suppress console output"
+    )
+):
+    """Perform taint analysis on Python file"""
+    try:
+        # Validate file
+        target_path = Path(file_path)
+        if not target_path.exists():
+            typer.echo(f"File not found: {file_path}")
+            raise typer.Exit(1)
+
+        if target_path.suffix != '.py':
+            typer.echo(f"File must be a Python file (.py): {file_path}")
+            raise typer.Exit(1)
+
+        if not quiet:
+            console.print(f"🔍 Performing taint analysis on {file_path}...")
+
+        # Parse file
+        parser = PythonParser()
+        ast = parser.parse_file(file_path)
+        if not ast:
+            typer.echo(f"Failed to parse file: {file_path}")
+            raise typer.Exit(1)
+
+        # Run taint analysis
+        analyzer = TaintAnalyzer()
+        result = analyzer.analyze_file(str(target_path), ast)
+
+        # Generate output
+        reporter = TaintReporter()
+
+        if output_format == "console":
+            if not quiet:
+                reporter.report_results(result)
+        elif output_format == "json":
+            import json
+            json_data = reporter.export_json(result)
+
+            if output:
+                with open(output, 'w') as f:
+                    json.dump(json_data, f, indent=2)
+                if not quiet:
+                    console.print(f"📁 JSON results exported to {output}")
+            else:
+                print(json.dumps(json_data, indent=2))
+
+        # Exit with non-zero code if vulnerable paths found
+        if result.vulnerable_paths_count > 0:
+            raise typer.Exit(1)
+        else:
+            raise typer.Exit(0)
+
+    except Exception as e:
+        if not quiet:
+            console.print(f"❌ Error: {e}")
         raise typer.Exit(1)
 
 

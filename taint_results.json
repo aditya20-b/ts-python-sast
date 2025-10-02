@@ -1,0 +1,366 @@
+{
+  "file_path": "test_taint.py",
+  "summary": {
+    "sources_found": 13,
+    "sinks_found": 11,
+    "sanitizers_found": 4,
+    "total_paths": 11,
+    "vulnerable_paths": 9,
+    "sanitized_paths": 2,
+    "analysis_time_ms": 2.4251937866210938
+  },
+  "paths": [
+    {
+      "source": {
+        "variable": "user_input",
+        "type": "user_input",
+        "location": "test_taint.py:12",
+        "line": 12
+      },
+      "sink": {
+        "function": "os.system",
+        "type": "command_exec",
+        "location": "test_taint.py",
+        "line": 13
+      },
+      "taint_labels": [
+        "user"
+      ],
+      "flow": [
+        {
+          "from": "input",
+          "to": "user_input",
+          "operation": "source",
+          "location": "test_taint.py:12",
+          "preserves_taint": true,
+          "sanitizer": null
+        }
+      ],
+      "is_sanitized": false,
+      "sanitizers": [],
+      "severity": "high",
+      "confidence": 0.8
+    },
+    {
+      "source": {
+        "variable": "command",
+        "type": "user_input",
+        "location": "test_taint.py:17",
+        "line": 17
+      },
+      "sink": {
+        "function": "os.system",
+        "type": "command_exec",
+        "location": "test_taint.py",
+        "line": 19
+      },
+      "taint_labels": [
+        "user"
+      ],
+      "flow": [
+        {
+          "from": "user_data",
+          "to": "command",
+          "operation": "assignment",
+          "location": "test_taint.py:18",
+          "preserves_taint": true,
+          "sanitizer": null
+        }
+      ],
+      "is_sanitized": false,
+      "sanitizers": [],
+      "severity": "high",
+      "confidence": 0.8
+    },
+    {
+      "source": {
+        "variable": "safe_input",
+        "type": "user_input",
+        "location": "test_taint.py:23",
+        "line": 23
+      },
+      "sink": {
+        "function": "os.system",
+        "type": "command_exec",
+        "location": "test_taint.py",
+        "line": 25
+      },
+      "taint_labels": [
+        "user"
+      ],
+      "flow": [
+        {
+          "from": "user_input",
+          "to": "safe_input",
+          "operation": "sanitize",
+          "location": "test_taint.py:24",
+          "preserves_taint": false,
+          "sanitizer": "shlex.quote"
+        },
+        {
+          "from": "user_input",
+          "to": "safe_input",
+          "operation": "assignment",
+          "location": "test_taint.py:24",
+          "preserves_taint": true,
+          "sanitizer": null
+        }
+      ],
+      "is_sanitized": true,
+      "sanitizers": [
+        "shlex.quote"
+      ],
+      "severity": "high",
+      "confidence": 0.8
+    },
+    {
+      "source": {
+        "variable": "env_data",
+        "type": "user_input",
+        "location": "test_taint.py:29",
+        "line": 29
+      },
+      "sink": {
+        "function": "eval",
+        "type": "code_eval",
+        "location": "test_taint.py",
+        "line": 30
+      },
+      "taint_labels": [
+        "env"
+      ],
+      "flow": [
+        {
+          "from": "os.environ",
+          "to": "env_data",
+          "operation": "source",
+          "location": "test_taint.py:29",
+          "preserves_taint": true,
+          "sanitizer": null
+        }
+      ],
+      "is_sanitized": false,
+      "sanitizers": [],
+      "severity": "critical",
+      "confidence": 0.8
+    },
+    {
+      "source": {
+        "variable": "temp3",
+        "type": "user_input",
+        "location": "test_taint.py:34",
+        "line": 34
+      },
+      "sink": {
+        "function": "os.system",
+        "type": "command_exec",
+        "location": "test_taint.py",
+        "line": 38
+      },
+      "taint_labels": [
+        "user"
+      ],
+      "flow": [
+        {
+          "from": "temp2",
+          "to": "temp3",
+          "operation": "assignment",
+          "location": "test_taint.py:37",
+          "preserves_taint": true,
+          "sanitizer": null
+        }
+      ],
+      "is_sanitized": false,
+      "sanitizers": [],
+      "severity": "high",
+      "confidence": 0.8
+    },
+    {
+      "source": {
+        "variable": "command",
+        "type": "user_input",
+        "location": "test_taint.py:43",
+        "line": 43
+      },
+      "sink": {
+        "function": "os.system",
+        "type": "command_exec",
+        "location": "test_taint.py",
+        "line": 45
+      },
+      "taint_labels": [
+        "user"
+      ],
+      "flow": [
+        {
+          "from": "user_path",
+          "to": "command",
+          "operation": "assignment",
+          "location": "test_taint.py:44",
+          "preserves_taint": true,
+          "sanitizer": null
+        }
+      ],
+      "is_sanitized": false,
+      "sanitizers": [],
+      "severity": "high",
+      "confidence": 0.8
+    },
+    {
+      "source": {
+        "variable": "command",
+        "type": "user_input",
+        "location": "test_taint.py:49",
+        "line": 49
+      },
+      "sink": {
+        "function": "os.system",
+        "type": "command_exec",
+        "location": "test_taint.py",
+        "line": 51
+      },
+      "taint_labels": [
+        "user"
+      ],
+      "flow": [
+        {
+          "from": "filename",
+          "to": "command",
+          "operation": "assignment",
+          "location": "test_taint.py:50",
+          "preserves_taint": true,
+          "sanitizer": null
+        }
+      ],
+      "is_sanitized": false,
+      "sanitizers": [],
+      "severity": "high",
+      "confidence": 0.8
+    },
+    {
+      "source": {
+        "variable": "number",
+        "type": "user_input",
+        "location": "test_taint.py:55",
+        "line": 55
+      },
+      "sink": {
+        "function": "os.system",
+        "type": "command_exec",
+        "location": "test_taint.py",
+        "line": 57
+      },
+      "taint_labels": [
+        "user"
+      ],
+      "flow": [
+        {
+          "from": "user_input",
+          "to": "number",
+          "operation": "sanitize",
+          "location": "test_taint.py:56",
+          "preserves_taint": false,
+          "sanitizer": "int"
+        },
+        {
+          "from": "user_input",
+          "to": "number",
+          "operation": "assignment",
+          "location": "test_taint.py:56",
+          "preserves_taint": true,
+          "sanitizer": null
+        }
+      ],
+      "is_sanitized": true,
+      "sanitizers": [
+        "int"
+      ],
+      "severity": "high",
+      "confidence": 0.8
+    },
+    {
+      "source": {
+        "variable": "user_cmd",
+        "type": "user_input",
+        "location": "test_taint.py:61",
+        "line": 61
+      },
+      "sink": {
+        "function": "subprocess.run",
+        "type": "command_exec",
+        "location": "test_taint.py",
+        "line": 62
+      },
+      "taint_labels": [
+        "user"
+      ],
+      "flow": [
+        {
+          "from": "input",
+          "to": "user_cmd",
+          "operation": "source",
+          "location": "test_taint.py:61",
+          "preserves_taint": true,
+          "sanitizer": null
+        }
+      ],
+      "is_sanitized": false,
+      "sanitizers": [],
+      "severity": "high",
+      "confidence": 0.8
+    },
+    {
+      "source": {
+        "variable": "user_file",
+        "type": "user_input",
+        "location": "test_taint.py:66",
+        "line": 66
+      },
+      "sink": {
+        "function": "subprocess.run",
+        "type": "command_exec",
+        "location": "test_taint.py",
+        "line": 67
+      },
+      "taint_labels": [
+        "user"
+      ],
+      "flow": [
+        {
+          "from": "input",
+          "to": "user_file",
+          "operation": "source",
+          "location": "test_taint.py:66",
+          "preserves_taint": true,
+          "sanitizer": null
+        }
+      ],
+      "is_sanitized": false,
+      "sanitizers": [],
+      "severity": "high",
+      "confidence": 0.8
+    },
+    {
+      "source": {
+        "variable": "base",
+        "type": "user_input",
+        "location": "test_taint.py:72",
+        "line": 72
+      },
+      "sink": {
+        "function": "os.system",
+        "type": "command_exec",
+        "location": "test_taint.py",
+        "line": 74
+      },
+      "taint_labels": [
+        "user"
+      ],
+      "flow": [],
+      "is_sanitized": false,
+      "sanitizers": [],
+      "severity": "high",
+      "confidence": 0.8
+    }
+  ]
+}

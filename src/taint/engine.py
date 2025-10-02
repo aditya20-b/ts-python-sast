@@ -139,6 +139,9 @@ class DataflowEngine:
         self.flow_edges: List[TaintFlowEdge] = []
         self.taint_paths: List[TaintPath] = []
 
+        # Module tracker for context-aware detection (set by analyzer)
+        self.module_tracker = None
+
     def analyze_function(
         self,
         func_node: ASTNode,
@@ -352,7 +355,13 @@ class DataflowEngine:
         """Check if call is a taint source"""
         try:
             call_expr = CallExpression(call_node.node, call_node.source_code)
-            source = self.source_config.is_source(call_expr)
+
+            # Get module context if available
+            module_context = None
+            if self.module_tracker:
+                module_context = self.module_tracker.get_module_for_call(call_expr.qualified_name)
+
+            source = self.source_config.is_source(call_expr, module_context)
 
             if source:
                 # Mark variable as tainted
@@ -421,7 +430,13 @@ class DataflowEngine:
         """Check if call is a sink with tainted arguments"""
         try:
             call_expr = CallExpression(call_node.node, call_node.source_code)
-            sink = self.sink_config.is_sink(call_expr)
+
+            # Get module context if available
+            module_context = None
+            if self.module_tracker:
+                module_context = self.module_tracker.get_module_for_call(call_expr.qualified_name)
+
+            sink = self.sink_config.is_sink(call_expr, module_context)
 
             if sink:
                 # Check if any vulnerable arguments are tainted
@@ -537,19 +552,28 @@ class DataflowEngine:
 class TaintAnalyzer:
     """Main taint analysis orchestrator"""
 
-    def __init__(self):
-        self.source_config = SourceConfig()
-        self.sink_config = SinkConfig()
+    def __init__(self, enable_heuristics: bool = True):
+        self.source_config = SourceConfig(enable_heuristics=enable_heuristics)
+        self.sink_config = SinkConfig(enable_heuristics=enable_heuristics)
         self.sanitizer_config = SanitizerConfig()
         self.engine = DataflowEngine(
             self.source_config,
             self.sink_config,
             self.sanitizer_config
         )
+        # Import here to avoid circular dependency
+        from .module_tracker import ModuleTracker
+        self.module_tracker = ModuleTracker()
 
     def analyze_file(self, file_path: str, ast_root: ASTNode) -> TaintAnalysisResult:
         """Analyze a file for taint vulnerabilities"""
         start_time = time.time()
+
+        # Track imports for module-context detection
+        self.module_tracker.track_imports(ast_root)
+
+        # Pass module tracker to engine for context-aware detection
+        self.engine.module_tracker = self.module_tracker
 
         all_flow_edges = []
         all_taint_paths = []

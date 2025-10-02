@@ -1,17 +1,25 @@
 """
 Taint sink configuration and detection
+
+Enhanced with multi-tier detection:
+1. Exact match from known list (highest confidence)
+2. Heuristic with module context (high confidence)
+3. Heuristic pattern matching (medium confidence)
 """
 
-from typing import List, Dict, Set, Optional
+from typing import List, Dict, Set, Optional, Tuple
 from ..parsing.ast_utils import ASTNode, CallExpression
 from .models import TaintSink, SinkType
+from .heuristics import HeuristicSinkDetector, HeuristicConfidence
 
 
 class SinkConfig:
     """Configuration and detection of taint sinks"""
 
-    def __init__(self):
+    def __init__(self, enable_heuristics: bool = True):
         self.sinks: Dict[str, TaintSink] = {}
+        self.enable_heuristics = enable_heuristics
+        self.heuristic_detector = HeuristicSinkDetector() if enable_heuristics else None
         self._initialize_default_sinks()
 
     def _initialize_default_sinks(self) -> None:
@@ -177,25 +185,63 @@ class SinkConfig:
         """Add a custom taint sink"""
         self.sinks[sink.name] = sink
 
-    def is_sink(self, call_expr: CallExpression) -> Optional[TaintSink]:
-        """Check if a call expression is a taint sink"""
+    def is_sink(
+        self,
+        call_expr: CallExpression,
+        module_context: Optional[str] = None
+    ) -> Optional[TaintSink]:
+        """
+        Check if a call expression is a taint sink using multi-tier detection
+
+        Args:
+            call_expr: The function call to check
+            module_context: Optional module name for context-aware detection
+
+        Returns:
+            TaintSink if detected, with confidence score set
+        """
         func_name = call_expr.function_name
         qualified_name = call_expr.qualified_name
 
-        # Check direct matches
+        # Tier 1: Exact match from known list (highest confidence)
         for sink in self.sinks.values():
             # Check qualified name first
             if sink.qualified_name and qualified_name == sink.qualified_name:
+                sink.confidence = HeuristicConfidence.VERY_HIGH.value
                 return sink
 
             # Check function name
             if func_name == sink.name:
+                sink.confidence = HeuristicConfidence.VERY_HIGH.value
                 return sink
 
             # Check patterns
             for pattern in sink.patterns:
                 if pattern in qualified_name or pattern == func_name:
+                    sink.confidence = HeuristicConfidence.VERY_HIGH.value
                     return sink
+
+        # Tier 2 & 3: Heuristic detection (if enabled)
+        if self.enable_heuristics and self.heuristic_detector:
+            result = self.heuristic_detector.detect_sink_type(
+                func_name,
+                qualified_name,
+                module_context
+            )
+
+            if result:
+                sink_type, severity, confidence = result
+
+                # Create a dynamic TaintSink
+                return TaintSink(
+                    name=qualified_name or func_name,
+                    qualified_name=qualified_name,
+                    sink_type=sink_type,
+                    severity=severity,
+                    patterns=[func_name],
+                    vulnerable_params=[0],  # Default: first param is vulnerable
+                    confidence=confidence
+                )
 
         return None
 

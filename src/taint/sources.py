@@ -1,17 +1,25 @@
 """
 Taint source configuration and detection
+
+Enhanced with multi-tier detection:
+1. Exact match from known list (highest confidence)
+2. Heuristic with module context (high confidence)
+3. Heuristic pattern matching (medium confidence)
 """
 
 from typing import List, Dict, Set, Optional
 from ..parsing.ast_utils import ASTNode, CallExpression
 from .models import TaintSource, SourceType, TaintLabel
+from .heuristics import HeuristicSourceDetector, HeuristicConfidence
 
 
 class SourceConfig:
     """Configuration and detection of taint sources"""
 
-    def __init__(self):
+    def __init__(self, enable_heuristics: bool = True):
         self.sources: Dict[str, TaintSource] = {}
+        self.enable_heuristics = enable_heuristics
+        self.heuristic_detector = HeuristicSourceDetector() if enable_heuristics else None
         self._initialize_default_sources()
 
     def _initialize_default_sources(self) -> None:
@@ -115,25 +123,62 @@ class SourceConfig:
         """Add a custom taint source"""
         self.sources[source.name] = source
 
-    def is_source(self, call_expr: CallExpression) -> Optional[TaintSource]:
-        """Check if a call expression is a taint source"""
+    def is_source(
+        self,
+        call_expr: CallExpression,
+        module_context: Optional[str] = None
+    ) -> Optional[TaintSource]:
+        """
+        Check if a call expression is a taint source using multi-tier detection
+
+        Args:
+            call_expr: The function call to check
+            module_context: Optional module name for context-aware detection
+
+        Returns:
+            TaintSource if detected, with confidence score set
+        """
         func_name = call_expr.function_name
         qualified_name = call_expr.qualified_name
 
-        # Check direct matches
+        # Tier 1: Exact match from known list (highest confidence)
         for source in self.sources.values():
             # Check qualified name first
             if source.qualified_name and qualified_name == source.qualified_name:
+                source.confidence = HeuristicConfidence.VERY_HIGH.value
                 return source
 
             # Check function name
             if func_name == source.name:
+                source.confidence = HeuristicConfidence.VERY_HIGH.value
                 return source
 
             # Check patterns
             for pattern in source.patterns:
                 if pattern in qualified_name or pattern == func_name:
+                    source.confidence = HeuristicConfidence.VERY_HIGH.value
                     return source
+
+        # Tier 2 & 3: Heuristic detection (if enabled)
+        if self.enable_heuristics and self.heuristic_detector:
+            result = self.heuristic_detector.detect_source_type(
+                func_name,
+                qualified_name,
+                module_context
+            )
+
+            if result:
+                source_type, taint_label, confidence = result
+
+                # Create a dynamic TaintSource
+                return TaintSource(
+                    name=qualified_name or func_name,
+                    qualified_name=qualified_name,
+                    source_type=source_type,
+                    taint_label=taint_label,
+                    patterns=[func_name],
+                    confidence=confidence
+                )
 
         return None
 

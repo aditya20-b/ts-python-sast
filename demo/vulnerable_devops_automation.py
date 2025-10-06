@@ -41,7 +41,7 @@ class DevOpsConfig:
         self.rabbitmq_credentials = "admin:rabbitmq_secret_2023"  # SECURITY ISSUE: RabbitMQ credentials
 
         # API keys and tokens
-        self.slack_webhook_url = "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"  # SECURITY ISSUE: Slack webhook
+        # self.slack_webhook_url = "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"  # SECURITY ISSUE: Slack webhook
         self.github_token = "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # SECURITY ISSUE: GitHub token
         self.jenkins_api_token = "jenkins_token_1234567890abcdef"  # SECURITY ISSUE: Jenkins token
 

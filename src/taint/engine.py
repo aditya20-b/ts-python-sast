@@ -142,6 +142,10 @@ class DataflowEngine:
         # Module tracker for context-aware detection (set by analyzer)
         self.module_tracker = None
 
+        # Semantic detector for object-based tracking
+        from .semantic_detector import SemanticTaintDetector
+        self.semantic_detector = SemanticTaintDetector()
+
     def analyze_function(
         self,
         func_node: ASTNode,
@@ -180,6 +184,8 @@ class DataflowEngine:
                 self._analyze_loop(child, state, file_path)
             elif child.type == 'with_statement':
                 self._analyze_with_statement(child, state, file_path)
+            elif child.type == 'try_statement':
+                self._analyze_try_statement(child, state, file_path)
             elif child.type == 'return_statement':
                 self._analyze_return(child, state, file_path)
 
@@ -228,7 +234,29 @@ class DataflowEngine:
         if not var_name:
             return
 
-        # Check if right side is a taint source
+        # Check if right side is a semantic source (web request access, etc.)
+        semantic_result = self.semantic_detector.is_source(right, None)
+        if semantic_result:
+            source_desc, confidence = semantic_result
+            location = f"{file_path}:{node.start_point[0] + 1}"
+            state.mark_tainted(
+                var_name,
+                {TaintLabel.USER},
+                location,
+                node.start_point[0] + 1
+            )
+
+            # Record flow edge
+            self.flow_edges.append(TaintFlowEdge(
+                from_var=source_desc,
+                to_var=var_name,
+                operation='source',
+                location=file_path,
+                line=node.start_point[0] + 1,
+                preserves_taint=True
+            ))
+
+        # Check if right side is a taint source (traditional)
         if right.type == 'call':
             self._check_source_call(right, var_name, state, file_path)
             self._check_sanitizer_call(right, var_name, state, file_path)
@@ -317,9 +345,71 @@ class DataflowEngine:
         file_path: str
     ) -> None:
         """Analyze with statement"""
+        # First, check the with_item expressions (e.g., open(fname) in "with open(fname) as f:")
+        # Structure: with_statement -> with_clause -> with_item -> as_pattern -> call
+        for child in node.children():
+            if child.type == 'with_clause':
+                for with_item in child.children():
+                    if with_item.type == 'with_item':
+                        # Check for as_pattern which contains the call
+                        for pattern in with_item.children():
+                            if pattern.type == 'as_pattern':
+                                # Get the call from as_pattern (first child)
+                                call_node = pattern.children()[0] if pattern.children() else None
+                                if call_node and call_node.type == 'call':
+                                    # Check if this call is a sink (e.g., open with tainted argument)
+                                    self._check_sink_call(call_node, state, file_path)
+
+                                    # Also track assignment for object tracking (with ... as var)
+                                    # Find the as_pattern_target
+                                    for target in pattern.children():
+                                        if target.type == 'as_pattern_target':
+                                            alias = target.children()[0] if target.children() else None
+                                            if alias:
+                                                var_name = self._extract_var_name(alias)
+                                                if var_name:
+                                                    # Track as potential I/O object
+                                                    try:
+                                                        from ..parsing.ast_utils import CallExpression
+                                                        call_expr = CallExpression(call_node.node, call_node.source_code)
+                                                        self.semantic_detector.track_assignment(var_name, call_expr)
+                                                    except:
+                                                        pass
+                            elif pattern.type == 'call':
+                                # Handle: with open(fname):  (no 'as')
+                                self._check_sink_call(pattern, state, file_path)
+
+        # Then analyze the body
         body = node.child_by_field_name('body')
         if body:
             self._analyze_statements(body, state, file_path)
+
+    def _analyze_try_statement(
+        self,
+        node: ASTNode,
+        state: TaintState,
+        file_path: str
+    ) -> None:
+        """Analyze try-except-finally statement"""
+        # Analyze try body
+        body = node.child_by_field_name('body')
+        if body:
+            self._analyze_statements(body, state, file_path)
+
+        # Analyze except clauses (preserve taint state across exception handlers)
+        for child in node.children():
+            if child.type == 'except_clause':
+                handler_body = child.child_by_field_name('consequence')
+                if handler_body:
+                    self._analyze_statements(handler_body, state, file_path)
+            elif child.type == 'else_clause':
+                else_body = child.child_by_field_name('body')
+                if else_body:
+                    self._analyze_statements(else_body, state, file_path)
+            elif child.type == 'finally_clause':
+                finally_body = child.child_by_field_name('body')
+                if finally_body:
+                    self._analyze_statements(finally_body, state, file_path)
 
     def _analyze_return(
         self,
@@ -356,6 +446,31 @@ class DataflowEngine:
         try:
             call_expr = CallExpression(call_node.node, call_node.source_code)
 
+            # First try semantic detection (higher priority)
+            semantic_result = self.semantic_detector.is_source(call_node, call_expr)
+            if semantic_result:
+                source_desc, confidence = semantic_result
+                # Mark variable as tainted
+                location = f"{file_path}:{call_node.start_point[0] + 1}"
+                state.mark_tainted(
+                    var_name,
+                    {TaintLabel.USER},  # Default label
+                    location,
+                    call_node.start_point[0] + 1
+                )
+
+                # Record flow edge
+                self.flow_edges.append(TaintFlowEdge(
+                    from_var=source_desc,
+                    to_var=var_name,
+                    operation='source',
+                    location=file_path,
+                    line=call_node.start_point[0] + 1,
+                    preserves_taint=True
+                ))
+                return
+
+            # Fallback to traditional detection
             # Get module context if available
             module_context = None
             if self.module_tracker:
@@ -431,6 +546,37 @@ class DataflowEngine:
         try:
             call_expr = CallExpression(call_node.node, call_node.source_code)
 
+            # Try semantic detection first
+            semantic_sink = self.semantic_detector.is_sink(call_expr, None)
+            if semantic_sink:
+                sink_category, severity, confidence = semantic_sink
+                # Check if any arguments are tainted
+                args = call_expr.arguments
+                for arg_idx, arg in enumerate(args):
+                    tainted_vars = self._find_tainted_vars_in_expr(arg, state)
+                    if tainted_vars:
+                        # Found taint path: source -> sink
+                        for tainted_var in tainted_vars:
+                            tainted_val = state.get_tainted_value(tainted_var)
+                            if tainted_val:
+                                # Create a simplified sink object for path creation
+                                from .models import TaintSink, SinkType
+                                temp_sink = type('obj', (object,), {
+                                    'name': call_expr.function_name,
+                                    'sink_type': SinkType.PATH_TRAVERSAL if sink_category == 'path_traversal' else SinkType.COMMAND_EXEC,
+                                    'severity': severity
+                                })()
+                                self._create_taint_path(
+                                    tainted_var,
+                                    tainted_val,
+                                    temp_sink,
+                                    call_node,
+                                    file_path,
+                                    state
+                                )
+                return
+
+            # Fallback to traditional detection
             # Get module context if available
             module_context = None
             if self.module_tracker:
